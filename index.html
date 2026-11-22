@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Part-Time Job Rate Record & Calculator</title>
+  <style>
+    :root {
+      --bg: #f6f8f7;
+      --surface: #ffffff;
+      --surface-alt: #f0f5f3;
+      --primary: #006a63;
+      --primary-hover: #00544e;
+      --text: #1a2421;
+      --muted: #5c6b66;
+      --border: #dce5e1;
+      --danger: #c62828;
+      --danger-bg: #fdecea;
+      --paid-bg: #e6f4ea;
+      --paid-text: #137333;
+      --pending-bg: #fef7e0;
+      --pending-text: #b06000;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 20px 16px 60px;
+    }
+
+    .container { max-width: 980px; margin: 0 auto; }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    h1 { font-size: 1.45rem; font-weight: 700; color: var(--primary); }
+
+    .privacy-badge {
+      font-size: 0.78rem;
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 5px 10px;
+      border-radius: 999px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .tab-btn.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* Cards */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+    }
+
+    .card-label { font-size: 0.78rem; color: var(--muted); margin-bottom: 4px; }
+    .card-value { font-size: 1.25rem; font-weight: 700; color: var(--text); }
+    .card-value.accent { color: var(--primary); }
+
+    /* Forms */
+    .form-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      margin-bottom: 20px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 9px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.92rem;
+      background: #fff;
+      color: var(--text);
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .preview-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      background: var(--surface-alt);
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+    }
+
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+    button.btn {
+      padding: 9px 16px;
+      border-radius: 8px;
+      border: none;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-secondary { background: var(--surface-alt); color: var(--text); border: 1px solid var(--border); }
+    .btn-danger { background: var(--danger-bg); color: var(--danger); }
+
+    /* Table */
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow-x: auto;
+    }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    th, td { padding: 11px 12px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    th { background: var(--surface-alt); color: var(--muted); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; }
+    tr:last-child td { border-bottom: none; }
+
+    .pill {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+    }
+
+    .pill-paid { background: var(--paid-bg); color: var(--paid-text); }
+    .pill-pending { background: var(--pending-bg); color: var(--pending-text); }
+    .pill-policy { background: var(--surface-alt); color: var(--primary); cursor: default; }
+
+    .icon-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 0.85rem;
+      color: var(--muted);
+      padding: 4px 6px;
+      border-radius: 6px;
+    }
+    .icon-btn:hover { background: var(--surface-alt); color: var(--text); }
+    .icon-btn.del:hover { background: var(--danger-bg); color: var(--danger); }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .compare-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .compare-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+    }
+
+    .compare-box h3 { font-size: 0.95rem; margin-bottom: 10px; color: var(--primary); }
+    .compare-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed var(--border); font-size: 0.88rem; }
+    .compare-row:last-child { border-bottom: none; font-weight: 700; }
+
+    .empty-state { text-align: center; padding: 32px 16px; color: var(--muted); font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Part-Time Job Rate Record & Calculator</h1>
+      <span class="privacy-badge">Private • Stored on this device only</span>
+    </header>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="log">Work Log</button>
+      <button class="tab-btn" data-tab="calc">Quick Calculator</button>
+      <button class="tab-btn" data-tab="rates">Job Rates</button>
+      <button class="tab-btn" data-tab="data">Backup & Reset</button>
+    </div>
+
+    <!-- TAB 1: WORK LOG -->
+    <section id="tab-log" class="panel active">
+      <div class="summary-grid" id="summaryGrid"></div>
+
+      <div class="form-card">
+        <form id="shiftForm">
+          <input type="hidden" id="editId" />
+          <div class="form-grid">
+            <div>
+              <label for="presetSelect">Job Preset (Optional)</label>
+              <select id="presetSelect"><option value="">-- Custom --</option></select>
+            </div>
+            <div>
+              <label for="shiftDate">Date</label>
+              <input type="date" id="shiftDate" required />
+            </div>
+            <div>
+              <label for="shiftJob">Job / Employer</label>
+              <input type="text" id="shiftJob" placeholder="e.g. Cafe Barista" required />
+            </div>
+            <div>
+              <label for="shiftStart">Start Time</label>
+              <input type="time" id="shiftStart" value="09:00" required />
+            </div>
+            <div>
+              <label for="shiftEnd">End Time</label>
+              <input type="time" id="shiftEnd" value="18:00" required />
+            </div>
+            <div>
+              <label for="shiftRest">Rest (Mins)</label>
+              <input type="number" id="shiftRest" min="0" value="60" />
+            </div>
+            <div>
+              <label for="shiftPolicy">Rest Time Policy</label>
+              <select id="shiftPolicy">
+                <option value="unpaid">Unpaid (Deduct)</option>
+                <option value="paid">Paid (Include)</option>
+              </select>
+            </div>
+            <div>
+              <label for="shiftRate">Hourly Rate (RM)</label>
+              <input type="number" id="shiftRate" min="0" step="0.01" value="15.00" required />
+            </div>
+            <div>
+              <label for="shiftStatus">Status</label>
+              <select id="shiftStatus">
+                <option value="Pending">Pending</option>
+                <option value="Paid">Paid</option>
+              </select>
+            </div>
+            <div>
+              <label for="shiftNotes">Notes</label>
+              <input type="text" id="shiftNotes" placeholder="Optional" />
+            </div>
+          </div>
+
+          <div class="preview-bar">
+            <div id="livePreview">With Rest: 9.00h • Without Rest: 8.00h • Pay: RM 120.00</div>
+            <div class="btn-row">
+              <button type="button" class="btn btn-secondary" id="cancelEditBtn" style="display:none;">Cancel</button>
+              <button type="submit" class="btn btn-primary" id="saveShiftBtn">Add Shift</button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="toolbar">
+        <div class="btn-row">
+          <select id="filterStatus" style="width:auto;">
+            <option value="ALL">All Status</option>
+            <option value="Pending">Pending</option>
+            <option value="Paid">Paid</option>
+          </select>
+        </div>
+        <button class="btn btn-secondary" id="exportCsvBtn">Export CSV</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Job</th>
+              <th>Time</th>
+              <th>Rest</th>
+              <th>With Rest</th>
+              <th>Without Rest</th>
+              <th>Billable</th>
+              <th>Rate</th>
+              <th>Total (RM)</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="shiftTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 2: QUICK CALCULATOR -->
+    <section id="tab-calc" class="panel">
+      <div class="form-card">
+        <div class="form-grid">
+          <div>
+            <label for="calcStart">Start Time</label>
+            <input type="time" id="calcStart" value="09:00" />
+          </div>
+          <div>
+            <label for="calcEnd">End Time</label>
+            <input type="time" id="calcEnd" value="18:00" />
+          </div>
+          <div>
+            <label for="calcRest">Rest (Mins)</label>
+            <input type="number" id="calcRest" min="0" value="60" />
+          </div>
+          <div>
+            <label for="calcRate">Hourly Rate (RM)</label>
+            <input type="number" id="calcRate" min="0" step="0.01" value="15.00" />
+          </div>
+          <div>
+            <label for="calcShiftsWeek">Shifts / Week</label>
+            <input type="number" id="calcShiftsWeek" min="1" max="14" value="4" />
+          </div>
+          <div>
+            <label for="calcWeeksMonth">Weeks / Month</label>
+            <input type="number" id="calcWeeksMonth" min="1" max="5" step="0.5" value="4" />
+          </div>
+        </div>
+        <div class="btn-row" style="justify-content:flex-end;">
+          <button class="btn btn-primary" id="logFromCalcBtn">Log This Shift</button>
+        </div>
+      </div>
+
+      <div class="compare-grid" id="calcResults"></div>
+    </section>
+
+    <!-- TAB 3: JOB RATES -->
+    <section id="tab-rates" class="panel">
+      <div class="form-card">
+        <form id="rateForm">
+          <div class="form-grid">
+            <div>
+              <label for="rateJob">Job / Employer</label>
+              <input type="text" id="rateJob" placeholder="e.g. Weekend Event Crew" required />
+            </div>
+            <div>
+              <label for="rateHourly">Hourly Rate (RM)</label>
+              <input type="number" id="rateHourly" min="0" step="0.01" value="18.00" required />
+            </div>
+            <div>
+              <label for="rateRest">Default Rest (Mins)</label>
+              <input type="number" id="rateRest" min="0" value="60" />
+            </div>
+            <div>
+              <label for="ratePolicy">Default Rest Policy</label>
+              <select id="ratePolicy">
+                <option value="unpaid">Unpaid (Deduct)</option>
+                <option value="paid">Paid (Include)</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Save Job Rate</button>
+        </form>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Job / Employer</th>
+              <th>Rate (RM/hr)</th>
+              <th>Default Rest</th>
+              <th>Policy</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="rateTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 4: BACKUP & RESET -->
+    <section id="tab-data" class="panel">
+      <div class="form-card">
+        <p style="font-size:0.9rem; color:var(--muted); margin-bottom:14px;">
+          Your data is saved only in this browser. Export a JSON backup if you want to move records to another device, or clear everything below.
+        </p>
+        <div class="btn-row">
+          <button class="btn btn-secondary" id="exportJsonBtn">Download JSON Backup</button>
+          <label class="btn btn-secondary" style="margin:0; cursor:pointer;">
+            Import JSON Backup
+            <input type="file" id="importJsonInput" accept="application/json" style="display:none;" />
+          </label>
+          <button class="btn btn-danger" id="clearAllBtn">Delete All Data</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const STORAGE_KEYS = {
+      shifts: "pt_tracker_shifts_v1",
+      rates: "pt_tracker_rates_v1"
+    };
+
+    let shifts = JSON.parse(localStorage.getItem(STORAGE_KEYS.shifts) || "[]");
+    let rates = JSON.parse(localStorage.getItem(STORAGE_KEYS.rates) || "[]");
+
+    const $ = (id) => document.getElementById(id);
+
+    // Set default date to today
+    $("shiftDate").value = new Date().toISOString().split("T")[0];
+
+    function saveData() {
+      localStorage.setItem(STORAGE_KEYS.shifts, JSON.stringify(shifts));
+      localStorage.setItem(STORAGE_KEYS.rates, JSON.stringify(rates));
+    }
+
+    function calcHours(start, end, restMins, policy) {
+      if (!start || !end) return { withRest: 0, withoutRest: 0, billable: 0 };
+      const [sh, sm] = start.split(":").map(Number);
+      const [eh, em] = end.split(":").map(Number);
+      let diffMins = (eh * 60 + em) - (sh * 60 + sm);
+      if (diffMins < 0) diffMins += 24 * 60; // overnight shift
+      const withRest = diffMins / 60;
+      const withoutRest = Math.max(0, withRest - (Number(restMins) || 0) / 60);
+      const billable = policy === "paid" ? withRest : withoutRest;
+      return { withRest, withoutRest, billable };
+    }
+
+    function fmtRM(num) {
+      return "RM " + Number(num || 0).toFixed(2);
+    }
+
+    // Tabs
+    document.querySelectorAll(".tab-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+        document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
+        btn.classList.add("active");
+        $("tab-" + btn.dataset.tab).classList.add("active");
+      });
+    });
+
+    // Live form preview
+    function updatePreview() {
+      const { withRest, withoutRest, billable } = calcHours(
+        $("shiftStart").value,
+        $("shiftEnd").value,
+        $("shiftRest").value,
+        $("shiftPolicy").value
+      );
+      const rate = parseFloat($("shiftRate").value) || 0;
+      $("livePreview").textContent =
+        `With Rest: ${withRest.toFixed(2)}h • Without Rest: ${withoutRest.toFixed(2)}h • Billable: ${billable.toFixed(2)}h • Pay: ${fmtRM(billable * rate)}`;
+    }
+
+    ["shiftStart", "shiftEnd", "shiftRest", "shiftPolicy", "shiftRate"].forEach((id) => {
+      $(id).addEventListener("input", updatePreview);
+    });
+
+    // Render Summary & Shifts
+    function renderShifts() {
+      const filter = $("filterStatus").value;
+      let totalWithRest = 0, totalWithoutRest = 0, totalBillable = 0;
+      let totalEarn = 0, paidEarn = 0, pendingEarn = 0;
+
+      shifts.forEach((s) => {
+        const h = calcHours(s.start, s.end, s.rest, s.policy);
+        const pay = h.billable * s.rate;
+        totalWithRest += h.withRest;
+        totalWithoutRest += h.withoutRest;
+        totalBillable += h.billable;
+        totalEarn += pay;
+        if (s.status === "Paid") paidEarn += pay;
+        else pendingEarn += pay;
+      });
+
+      $("summaryGrid").innerHTML = `
+        <div class="card"><div class="card-label">Shifts</div><div class="card-value">${shifts.length}</div></div>
+        <div class="card"><div class="card-label">Hours (With Rest)</div><div class="card-value">${totalWithRest.toFixed(2)}h</div></div>
+        <div class="card"><div class="card-label">Hours (No Rest)</div><div class="card-value">${totalWithoutRest.toFixed(2)}h</div></div>
+        <div class="card"><div class="card-label">Billable Hours</div><div class="card-value">${totalBillable.toFixed(2)}h</div></div>
+        <div class="card"><div class="card-label">Total Earnings</div><div class="card-value accent">${fmtRM(totalEarn)}</div></div>
+        <div class="card"><div class="card-label">Paid</div><div class="card-value">${fmtRM(paidEarn)}</div></div>
+        <div class="card"><div class="card-label">Pending</div><div class="card-value">${fmtRM(pendingEarn)}</div></div>
+      `;
+
+      const filtered = shifts
+        .filter((s) => filter === "ALL" || s.status === filter)
+        .sort((a, b) => b.date.localeCompare(a.date));
+
+      if (!filtered.length) {
+        $("shiftTableBody").innerHTML = `<tr><td colspan="11" class="empty-state">No shifts logged yet.</td></tr>`;
+        return;
+      }
+
+      $("shiftTableBody").innerHTML = filtered.map((s) => {
+        const h = calcHours(s.start, s.end, s.rest, s.policy);
+        const pay = h.billable * s.rate;
+        return `
+          <tr>
+            <td>${s.date}</td>
+            <td><strong>${escapeHtml(s.job)}</strong>${s.notes ? `<br><small style="color:var(--muted)">${escapeHtml(s.notes)}</small>` : ""}</td>
+            <td>${s.start} – ${s.end}</td>
+            <td>${s.rest}m <span class="pill pill-policy">${s.policy === "paid" ? "Paid" : "Unpaid"}</span></td>
+            <td>${h.withRest.toFixed(2)}h</td>
+            <td>${h.withoutRest.toFixed(2)}h</td>
+            <td><strong>${h.billable.toFixed(2)}h</strong></td>
+            <td>${fmtRM(s.rate)}</td>
+            <td><strong>${fmtRM(pay)}</strong></td>
+            <td>
+              <button class="pill ${s.status === "Paid" ? "pill-paid" : "pill-pending"}" onclick="toggleStatus('${s.id}')">${s.status}</button>
+            </td>
+            <td>
+              <button class="icon-btn" onclick="editShift('${s.id}')">Edit</button>
+              <button class="icon-btn del" onclick="deleteShift('${s.id}')">Delete</button>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function escapeHtml(str) {
+      return String(str || "").replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+    }
+
+    // Add / Edit Shift
+    $("shiftForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const id = $("editId").value || Date.now().toString();
+      const entry = {
+        id,
+        date: $("shiftDate").value,
+        job: $("shiftJob").value.trim(),
+        start: $("shiftStart").value,
+        end: $("shiftEnd").value,
+        rest: Number($("shiftRest").value) || 0,
+        policy: $("shiftPolicy").value,
+        rate: parseFloat($("shiftRate").value) || 0,
+        status: $("shiftStatus").value,
+        notes: $("shiftNotes").value.trim()
+      };
+
+      const idx = shifts.findIndex((s) => s.id === id);
+      if (idx >= 0) shifts[idx] = entry;
+      else shifts.push(entry);
+
+      saveData();
+      resetShiftForm();
+      renderShifts();
+    });
+
+    function resetShiftForm() {
+      $("editId").value = "";
+      $("shiftJob").value = "";
+      $("shiftNotes").value = "";
+      $("presetSelect").value = "";
+      $("saveShiftBtn").textContent = "Add Shift";
+      $("cancelEditBtn").style.display = "none";
+      updatePreview();
+    }
+
+    $("cancelEditBtn").addEventListener("click", resetShiftForm);
+    $("filterStatus").addEventListener("change", renderShifts);
+
+    window.toggleStatus = (id) => {
+      const s = shifts.find((x) => x.id === id);
+      if (!s) return;
+      s.status = s.status === "Paid" ? "Pending" : "Paid";
+      saveData();
+      renderShifts();
+    };
+
+    window.editShift = (id) => {
+      const s = shifts.find((x) => x.id === id);
+      if (!s) return;
+      $("editId").value = s.id;
+      $("shiftDate").value = s.date;
+      $("shiftJob").value = s.job;
+      $("shiftStart").value = s.start;
+      $("shiftEnd").value = s.end;
+      $("shiftRest").value = s.rest;
+      $("shiftPolicy").value = s.policy;
+      $("shiftRate").value = s.rate;
+      $("shiftStatus").value = s.status;
+      $("shiftNotes").value = s.notes || "";
+      $("saveShiftBtn").textContent = "Update Shift";
+      $("cancelEditBtn").style.display = "inline-block";
+      updatePreview();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+    window.deleteShift = (id) => {
+      if (!confirm("Delete this shift record?")) return;
+      shifts = shifts.filter((x) => x.id !== id);
+      saveData();
+      renderShifts();
+    };
+
+    // Quick Calculator
+    function renderCalc() {
+      const start = $("calcStart").value;
+      const end = $("calcEnd").value;
+      const rest = Number($("calcRest").value) || 0;
+      const rate = parseFloat($("calcRate").value) || 0;
+      const shiftsWk = parseFloat($("calcShiftsWeek").value) || 0;
+      const weeksMo = parseFloat($("calcWeeksMonth").value) || 0;
+
+      const h = calcHours(start, end, rest, "unpaid");
+      const paidShift = h.withRest * rate;
+      const unpaidShift = h.withoutRest * rate;
+      const diffShift = paidShift - unpaidShift;
+
+      $("calcResults").innerHTML = `
+        <div class="compare-box">
+          <h3>With Rest (Paid Break)</h3>
+          <div class="compare-row"><span>Hours / Shift</span><span>${h.withRest.toFixed(2)}h</span></div>
+          <div class="compare-row"><span>Pay / Shift</span><span>${fmtRM(paidShift)}</span></div>
+          <div class="compare-row"><span>Weekly (${shiftsWk} shifts)</span><span>${fmtRM(paidShift * shiftsWk)}</span></div>
+          <div class="compare-row"><span>Monthly (${weeksMo} wks)</span><span>${fmtRM(paidShift * shiftsWk * weeksMo)}</span></div>
+        </div>
+        <div class="compare-box">
+          <h3>Without Rest (Unpaid Break)</h3>
+          <div class="compare-row"><span>Hours / Shift</span><span>${h.withoutRest.toFixed(2)}h</span></div>
+          <div class="compare-row"><span>Pay / Shift</span><span>${fmtRM(unpaidShift)}</span></div>
+          <div class="compare-row"><span>Weekly (${shiftsWk} shifts)</span><span>${fmtRM(unpaidShift * shiftsWk)}</span></div>
+          <div class="compare-row"><span>Monthly (${weeksMo} wks)</span><span>${fmtRM(unpaidShift * shiftsWk * weeksMo)}</span></div>
+        </div>
+        <div class="compare-box">
+          <h3>Rest Time Impact</h3>
+          <div class="compare-row"><span>Hours Diff / Shift</span><span>${(h.withRest - h.withoutRest).toFixed(2)}h</span></div>
+          <div class="compare-row"><span>Pay Diff / Shift</span><span>${fmtRM(diffShift)}</span></div>
+          <div class="compare-row"><span>Weekly Diff</span><span>${fmtRM(diffShift * shiftsWk)}</span></div>
+          <div class="compare-row"><span>Monthly Diff</span><span>${fmtRM(diffShift * shiftsWk * weeksMo)}</span></div>
+        </div>
+      `;
+    }
+
+    ["calcStart", "calcEnd", "calcRest", "calcRate", "calcShiftsWeek", "calcWeeksMonth"].forEach((id) => {
+      $(id).addEventListener("input", renderCalc);
+    });
+
+    $("logFromCalcBtn").addEventListener("click", () => {
+      $("shiftStart").value = $("calcStart").value;
+      $("shiftEnd").value = $("calcEnd").value;
+      $("shiftRest").value = $("calcRest").value;
+      $("shiftRate").value = $("calcRate").value;
+      updatePreview();
+      document.querySelector('[data-tab="log"]').click();
+      $("shiftJob").focus();
+    });
+
+    // Job Rates Directory
+    function renderRates() {
+      $("presetSelect").innerHTML = `<option value="">-- Custom --</option>` +
+        rates.map((r) => `<option value="${r.id}">${escapeHtml(r.job)} (${fmtRM(r.rate)}/hr)</option>`).join("");
+
+      if (!rates.length) {
+        $("rateTableBody").innerHTML = `<tr><td colspan="5" class="empty-state">No job rates saved yet.</td></tr>`;
+        return;
+      }
+
+      $("rateTableBody").innerHTML = rates.map((r) => `
+        <tr>
+          <td><strong>${escapeHtml(r.job)}</strong></td>
+          <td>${fmtRM(r.rate)}</td>
+          <td>${r.rest} mins</td>
+          <td><span class="pill pill-policy">${r.policy === "paid" ? "Paid (Include)" : "Unpaid (Deduct)"}</span></td>
+          <td><button class="icon-btn del" onclick="deleteRate('${r.id}')">Delete</button></td>
+        </tr>
+      `).join("");
+    }
+
+    $("rateForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      rates.push({
+        id: Date.now().toString(),
+        job: $("rateJob").value.trim(),
+        rate: parseFloat($("rateHourly").value) || 0,
+        rest: Number($("rateRest").value) || 0,
+        policy: $("ratePolicy").value
+      });
+      saveData();
+      $("rateJob").value = "";
+      renderRates();
+    });
+
+    $("presetSelect").addEventListener("change", (e) => {
+      const r = rates.find((x) => x.id === e.target.value);
+      if (!r) return;
+      $("shiftJob").value = r.job;
+      $("shiftRate").value = r.rate;
+      $("shiftRest").value = r.rest;
+      $("shiftPolicy").value = r.policy;
+      updatePreview();
+    });
+
+    window.deleteRate = (id) => {
+      if (!confirm("Delete this saved job rate?")) return;
+      rates = rates.filter((x) => x.id !== id);
+      saveData();
+      renderRates();
+    };
+
+    // Export CSV
+    $("exportCsvBtn").addEventListener("click", () => {
+      const headers = ["Date", "Job", "Start", "End", "Rest (Mins)", "Policy", "Hours (With Rest)", "Hours (Without Rest)", "Billable Hours", "Rate (RM)", "Total (RM)", "Status", "Notes"];
+      const rows = shifts.map((s) => {
+        const h = calcHours(s.start, s.end, s.rest, s.policy);
+        return [
+          s.date, `"${(s.job || "").replace(/"/g, '""')}"`, s.start, s.end, s.rest, s.policy,
+          h.withRest.toFixed(2), h.withoutRest.toFixed(2), h.billable.toFixed(2),
+          s.rate.toFixed(2), (h.billable * s.rate).toFixed(2), s.status,
+          `"${(s.notes || "").replace(/"/g, '""')}"`
+        ].join(",");
+      });
+      downloadFile([headers.join(","), ...rows].join("\n"), "part-time-job-record.csv", "text/csv");
+    });
+
+    // Export / Import JSON & Reset
+    $("exportJsonBtn").addEventListener("click", () => {
+      downloadFile(JSON.stringify({ shifts, rates }, null, 2), "part-time-backup.json", "application/json");
+    });
+
+    $("importJsonInput").addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(reader.result);
+          if (Array.isArray(parsed.shifts)) shifts = parsed.shifts;
+          if (Array.isArray(parsed.rates)) rates = parsed.rates;
+          saveData();
+          renderShifts();
+          renderRates();
+          alert("Backup restored.");
+        } catch {
+          alert("Invalid backup file.");
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    $("clearAllBtn").addEventListener("click", () => {
+      if (!confirm("Permanently delete ALL shifts and job rates from this device?")) return;
+      shifts = [];
+      rates = [];
+      localStorage.removeItem(STORAGE_KEYS.shifts);
+      localStorage.removeItem(STORAGE_KEYS.rates);
+      renderShifts();
+      renderRates();
+    });
+
+    function downloadFile(content, filename, type) {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // Init
+    updatePreview();
+    renderShifts();
+    renderRates();
+    renderCalc();
+  </script>
+</body>
+</html>
