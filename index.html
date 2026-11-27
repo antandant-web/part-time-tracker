@@ -37,31 +37,60 @@
 
     header {
       display: flex;
-      flex-wrap: wrap;
       justify-content: space-between;
       align-items: center;
       gap: 12px;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
+      position: relative;
     }
 
-    h1 { font-size: 1.45rem; font-weight: 700; color: var(--primary); }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    h1 { font-size: 1.4rem; font-weight: 700; color: var(--primary); }
 
     .privacy-badge {
-      font-size: 0.78rem;
+      font-size: 0.76rem;
       color: var(--muted);
       background: var(--surface);
       border: 1px solid var(--border);
-      padding: 5px 10px;
+      padding: 4px 10px;
       border-radius: 999px;
     }
 
+    /* Hamburger Button (Hidden on Desktop) */
+    .menu-toggle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .menu-toggle svg {
+      width: 20px;
+      height: 20px;
+      stroke: var(--primary);
+    }
+
+    /* Desktop Tabs */
     .tabs {
       display: flex;
       gap: 8px;
       margin-bottom: 20px;
       border-bottom: 1px solid var(--border);
       padding-bottom: 10px;
-      overflow-x: auto;
     }
 
     .tab-btn {
@@ -74,11 +103,44 @@
       color: var(--muted);
       cursor: pointer;
       white-space: nowrap;
+      text-align: left;
     }
 
     .tab-btn.active {
       background: var(--primary);
       color: #fff;
+    }
+
+    /* Tablet & Mobile Hamburger Breakpoint */
+    @media (max-width: 820px) {
+      .menu-toggle {
+        display: inline-flex;
+      }
+
+      .privacy-badge {
+        display: none;
+      }
+
+      .tabs {
+        display: none;
+        flex-direction: column;
+        gap: 6px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 10px;
+        margin-bottom: 18px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+      }
+
+      .tabs.open {
+        display: flex;
+      }
+
+      .tab-btn {
+        width: 100%;
+        padding: 10px 14px;
+      }
     }
 
     .panel { display: none; }
@@ -114,7 +176,7 @@
 
     .form-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
       gap: 12px;
       margin-bottom: 14px;
     }
@@ -169,6 +231,34 @@
     .btn-primary:hover { background: var(--primary-hover); }
     .btn-secondary { background: var(--surface-alt); color: var(--text); border: 1px solid var(--border); }
     .btn-danger { background: var(--danger-bg); color: var(--danger); }
+
+    /* Segmented Toggle for Prorate Method */
+    .method-toggle {
+      display: inline-flex;
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 4px;
+      gap: 4px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .method-btn {
+      border: none;
+      background: transparent;
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-size: 0.86rem;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .method-btn.active {
+      background: var(--primary);
+      color: #fff;
+    }
 
     /* Table */
     .table-wrap {
@@ -232,6 +322,11 @@
       padding: 16px;
     }
 
+    .compare-box.highlight {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px var(--primary);
+    }
+
     .compare-box h3 { font-size: 0.95rem; margin-bottom: 10px; color: var(--primary); }
     .compare-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed var(--border); font-size: 0.88rem; }
     .compare-row:last-child { border-bottom: none; font-weight: 700; }
@@ -242,16 +337,27 @@
 <body>
   <div class="container">
     <header>
-      <h1>Part-Time Job Rate Record & Calculator</h1>
-      <span class="privacy-badge">Private • Stored on this device only</span>
+      <div class="header-left">
+        <h1>Part-Time Job Rate Record & Calculator</h1>
+        <span class="privacy-badge">Private • Device only</span>
+      </div>
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">
+        <span id="activeTabLabel">Work Log</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
     </header>
 
-    <div class="tabs">
+    <nav class="tabs" id="navTabs">
       <button class="tab-btn active" data-tab="log">Work Log</button>
       <button class="tab-btn" data-tab="calc">Quick Calculator</button>
+      <button class="tab-btn" data-tab="prorate">Prorate Salary</button>
       <button class="tab-btn" data-tab="rates">Job Rates</button>
       <button class="tab-btn" data-tab="data">Backup & Reset</button>
-    </div>
+    </nav>
 
     <!-- TAB 1: WORK LOG -->
     <section id="tab-log" class="panel active">
@@ -389,7 +495,38 @@
       <div class="compare-grid" id="calcResults"></div>
     </section>
 
-    <!-- TAB 3: JOB RATES -->
+    <!-- TAB 3: PRORATE SALARY CALCULATOR -->
+    <section id="tab-prorate" class="panel">
+      <div class="form-card">
+        <div class="method-toggle">
+          <button type="button" class="method-btn active" data-method="workday">Workday-based</button>
+          <button type="button" class="method-btn" data-method="calendar">Calendar-day-based</button>
+        </div>
+
+        <div class="form-grid">
+          <div>
+            <label for="prorateSalary">Monthly Salary (RM)</label>
+            <input type="number" id="prorateSalary" min="0" step="0.01" value="4500.00" />
+          </div>
+          <div>
+            <label for="prorateMonth">Month</label>
+            <input type="month" id="prorateMonth" />
+          </div>
+          <div>
+            <label for="prorateTotalDays" id="prorateTotalLabel">Total Workdays in Month</label>
+            <input type="number" id="prorateTotalDays" min="1" max="31" step="0.5" value="22" />
+          </div>
+          <div>
+            <label for="prorateWorkedDays" id="prorateWorkedLabel">Workdays Worked</label>
+            <input type="number" id="prorateWorkedDays" min="0" max="31" step="0.5" value="15" />
+          </div>
+        </div>
+      </div>
+
+      <div class="compare-grid" id="prorateResults"></div>
+    </section>
+
+    <!-- TAB 4: JOB RATES -->
     <section id="tab-rates" class="panel">
       <div class="form-card">
         <form id="rateForm">
@@ -434,7 +571,7 @@
       </div>
     </section>
 
-    <!-- TAB 4: BACKUP & RESET -->
+    <!-- TAB 5: BACKUP & RESET -->
     <section id="tab-data" class="panel">
       <div class="form-card">
         <p style="font-size:0.9rem; color:var(--muted); margin-bottom:14px;">
@@ -460,11 +597,14 @@
 
     let shifts = JSON.parse(localStorage.getItem(STORAGE_KEYS.shifts) || "[]");
     let rates = JSON.parse(localStorage.getItem(STORAGE_KEYS.rates) || "[]");
+    let prorateMethod = "workday";
 
     const $ = (id) => document.getElementById(id);
 
-    // Set default date to today
-    $("shiftDate").value = new Date().toISOString().split("T")[0];
+    // Default dates
+    const today = new Date();
+    $("shiftDate").value = today.toISOString().split("T")[0];
+    $("prorateMonth").value = today.toISOString().slice(0, 7);
 
     function saveData() {
       localStorage.setItem(STORAGE_KEYS.shifts, JSON.stringify(shifts));
@@ -476,7 +616,7 @@
       const [sh, sm] = start.split(":").map(Number);
       const [eh, em] = end.split(":").map(Number);
       let diffMins = (eh * 60 + em) - (sh * 60 + sm);
-      if (diffMins < 0) diffMins += 24 * 60; // overnight shift
+      if (diffMins < 0) diffMins += 24 * 60;
       const withRest = diffMins / 60;
       const withoutRest = Math.max(0, withRest - (Number(restMins) || 0) / 60);
       const billable = policy === "paid" ? withRest : withoutRest;
@@ -487,13 +627,25 @@
       return "RM " + Number(num || 0).toFixed(2);
     }
 
-    // Tabs
+    // Hamburger & Tab Navigation
+    const navTabs = $("navTabs");
+    const menuToggle = $("menuToggle");
+    const activeTabLabel = $("activeTabLabel");
+
+    menuToggle.addEventListener("click", () => {
+      const isOpen = navTabs.classList.toggle("open");
+      menuToggle.setAttribute("aria-expanded", String(isOpen));
+    });
+
     document.querySelectorAll(".tab-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
         document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
         document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
         btn.classList.add("active");
         $("tab-" + btn.dataset.tab).classList.add("active");
+        activeTabLabel.textContent = btn.textContent;
+        navTabs.classList.remove("open");
+        menuToggle.setAttribute("aria-expanded", "false");
       });
     });
 
@@ -706,6 +858,81 @@
       $("shiftJob").focus();
     });
 
+    // Prorate Salary Calculator
+    function getMonthDayCounts(ym) {
+      if (!ym) return { calendarDays: 30, workdays: 22 };
+      const [year, month] = ym.split("-").map(Number);
+      const calendarDays = new Date(year, month, 0).getDate();
+      let workdays = 0;
+      for (let d = 1; d <= calendarDays; d++) {
+        const day = new Date(year, month - 1, d).getDay();
+        if (day !== 0 && day !== 6) workdays++;
+      }
+      return { calendarDays, workdays };
+    }
+
+    function syncProrateMonthDefaults() {
+      const { calendarDays, workdays } = getMonthDayCounts($("prorateMonth").value);
+      $("prorateTotalDays").value = prorateMethod === "workday" ? workdays : calendarDays;
+      $("prorateTotalLabel").textContent = prorateMethod === "workday" ? "Total Workdays in Month" : "Total Calendar Days";
+      $("prorateWorkedLabel").textContent = prorateMethod === "workday" ? "Workdays Worked" : "Calendar Days Worked";
+      renderProrate();
+    }
+
+    function renderProrate() {
+      const salary = parseFloat($("prorateSalary").value) || 0;
+      const totalDays = parseFloat($("prorateTotalDays").value) || 1;
+      const workedDays = parseFloat($("prorateWorkedDays").value) || 0;
+      const { calendarDays, workdays } = getMonthDayCounts($("prorateMonth").value);
+
+      const activeDaily = salary / totalDays;
+      const activeProrated = activeDaily * workedDays;
+
+      const workDaily = salary / (prorateMethod === "workday" ? totalDays : workdays);
+      const workProrated = workDaily * workedDays;
+
+      const calDaily = salary / (prorateMethod === "calendar" ? totalDays : calendarDays);
+      const calProrated = calDaily * workedDays;
+
+      $("prorateResults").innerHTML = `
+        <div class="compare-box ${prorateMethod === "workday" ? "highlight" : ""}">
+          <h3>Workday-based Proration</h3>
+          <div class="compare-row"><span>Basis</span><span>${prorateMethod === "workday" ? totalDays : workdays} workdays</span></div>
+          <div class="compare-row"><span>Daily Rate</span><span>${fmtRM(workDaily)}</span></div>
+          <div class="compare-row"><span>Days Worked</span><span>${workedDays} days</span></div>
+          <div class="compare-row"><span>Prorated Salary</span><span>${fmtRM(workProrated)}</span></div>
+        </div>
+        <div class="compare-box ${prorateMethod === "calendar" ? "highlight" : ""}">
+          <h3>Calendar-day-based Proration</h3>
+          <div class="compare-row"><span>Basis</span><span>${prorateMethod === "calendar" ? totalDays : calendarDays} calendar days</span></div>
+          <div class="compare-row"><span>Daily Rate</span><span>${fmtRM(calDaily)}</span></div>
+          <div class="compare-row"><span>Days Worked</span><span>${workedDays} days</span></div>
+          <div class="compare-row"><span>Prorated Salary</span><span>${fmtRM(calProrated)}</span></div>
+        </div>
+        <div class="compare-box">
+          <h3>Selected Result</h3>
+          <div class="compare-row"><span>Method</span><span>${prorateMethod === "workday" ? "Workday-based" : "Calendar-day-based"}</span></div>
+          <div class="compare-row"><span>Daily Rate</span><span>${fmtRM(activeDaily)}</span></div>
+          <div class="compare-row"><span>Difference vs Other</span><span>${fmtRM(Math.abs(workProrated - calProrated))}</span></div>
+          <div class="compare-row"><span>Total Pay</span><span>${fmtRM(activeProrated)}</span></div>
+        </div>
+      `;
+    }
+
+    document.querySelectorAll(".method-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".method-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        prorateMethod = btn.dataset.method;
+        syncProrateMonthDefaults();
+      });
+    });
+
+    $("prorateMonth").addEventListener("change", syncProrateMonthDefaults);
+    ["prorateSalary", "prorateTotalDays", "prorateWorkedDays"].forEach((id) => {
+      $(id).addEventListener("input", renderProrate);
+    });
+
     // Job Rates Directory
     function renderRates() {
       $("presetSelect").innerHTML = `<option value="">-- Custom --</option>` +
@@ -823,6 +1050,7 @@
     renderShifts();
     renderRates();
     renderCalc();
+    syncProrateMonthDefaults();
   </script>
 </body>
 </html>
